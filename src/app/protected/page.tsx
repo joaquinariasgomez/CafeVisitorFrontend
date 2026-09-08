@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { LogoutButton } from '@/components/logout-button'
+import { WhoAmIButton } from '@/components/whoami-button'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function ProtectedPage() {
@@ -16,6 +17,7 @@ export default async function ProtectedPage() {
       <p>
         Hello <span>{data.claims.email}</span>
       </p>
+      <WhoAmIButton />
       <LogoutButton />
     </div>
   )
