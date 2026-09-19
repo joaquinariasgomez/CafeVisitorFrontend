@@ -7,6 +7,27 @@ import QRCode from 'qrcode'
 import { Button } from '@/components/ui/button'
 import { backendFetch } from '@/lib/backend/client'
 
+type UserContextResponse = {
+  user: {
+    qrToken: string
+  }
+}
+
+function isUserContextResponse(body: unknown): body is UserContextResponse {
+  if (typeof body !== 'object' || body === null || !('user' in body)) {
+    return false
+  }
+
+  const user = body.user
+  return (
+    typeof user === 'object' &&
+    user !== null &&
+    'qrToken' in user &&
+    typeof user.qrToken === 'string' &&
+    user.qrToken.length > 0
+  )
+}
+
 export function WhoAmIButton() {
   const [result, setResult] = useState<unknown>(null)
   const [qrCode, setQrCode] = useState<{ imageUrl: string; targetUrl: string } | null>(null)
@@ -20,7 +41,7 @@ export function WhoAmIButton() {
     setError(null)
 
     try {
-      const response = await backendFetch('/whoami')
+      const response = await backendFetch('/user-context')
 
       if (!response.ok) {
         throw new Error(`Backend request failed (${response.status})`)
@@ -28,17 +49,11 @@ export function WhoAmIButton() {
 
       const body: unknown = await response.json()
 
-      if (
-        typeof body !== 'object' ||
-        body === null ||
-        !('qrToken' in body) ||
-        typeof body.qrToken !== 'string' ||
-        body.qrToken.length === 0
-      ) {
+      if (!isUserContextResponse(body)) {
         throw new Error('Backend response did not include a valid qrToken')
       }
 
-      const targetUrl = `${window.location.origin}/protected/qr/${encodeURIComponent(body.qrToken)}`
+      const targetUrl = `${window.location.origin}/protected/qr/${encodeURIComponent(body.user.qrToken)}`
       const imageUrl = await QRCode.toDataURL(targetUrl)
 
       setResult(body)
