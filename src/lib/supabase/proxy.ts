@@ -37,18 +37,27 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
+  const { pathname, search } = request.nextUrl
+  const isAuthRoute = pathname.startsWith('/auth')
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    // the OAuth consent route sends unauthenticated visitors to the login page
-    // itself, so that it can preserve the authorization in the `next` parameter
-    request.nextUrl.pathname !== '/oauth/consent'
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  if (!user && !isAuthRoute) {
+    // Send unauthenticated visitors to login, remembering where they wanted to go
+    // (e.g. a scanned QR deep link) so the OAuth callback can bring them back.
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
+    url.search = ''
+    if (pathname !== '/') url.searchParams.set('next', `${pathname}${search}`)
+    return NextResponse.redirect(url)
+  }
+
+  if (user && pathname === '/auth/login') {
+    // Already signed in: skip the login screen and honour a relative `next` if present.
+    const next = request.nextUrl.searchParams.get('next')
+    const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/'
+    const [nextPath, nextQuery] = safeNext.split('?')
+    const url = request.nextUrl.clone()
+    url.pathname = nextPath || '/'
+    url.search = nextQuery ? `?${nextQuery}` : ''
     return NextResponse.redirect(url)
   }
 
