@@ -41,7 +41,7 @@ export function WhoAmIButton() {
     setError(null)
 
     try {
-      const response = await backendFetch('/user-context')
+      const response = await backendFetch('/user/context')
 
       if (!response.ok) {
         throw new Error(`Backend request failed (${response.status})`)
