@@ -11,7 +11,7 @@ export default function NotFound() {
         <h1 className="text-2xl font-semibold">Page not found</h1>
         <p className="text-sm text-muted-foreground">The link may be outdated or the QR code may be invalid.</p>
       </div>
-      <Button render={<Link href="/" />}>Go home</Button>
+      <Button render={<Link href="/" />} nativeButton={false}>Go home</Button>
     </div>
   )
 }

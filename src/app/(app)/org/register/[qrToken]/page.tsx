@@ -41,10 +41,10 @@ function RegisterFlow({ qrToken, cafeteria }: { qrToken: string; cafeteria: Cafe
           <StampCard card={result.stampCard} compact />
         </div>
         <div className="flex w-full flex-col gap-2">
-          <Button size="lg" render={<Link href="/org/scan" />}>
+          <Button size="lg" render={<Link href="/org/scan" />} nativeButton={false}>
             <ScanLineIcon /> Scan next customer
           </Button>
-          <Button variant="ghost" render={<Link href="/org" />}>
+          <Button variant="ghost" render={<Link href="/org" />} nativeButton={false}>
             Back to home
           </Button>
         </div>
@@ -57,7 +57,7 @@ function RegisterFlow({ qrToken, cafeteria }: { qrToken: string; cafeteria: Cafe
     return (
       <div className="flex flex-col gap-4">
         <ErrorCard error={lookup.error} title="Customer not found" onRetry={() => lookup.refetch()} />
-        <Button variant="outline" render={<Link href="/org/scan" />}>
+        <Button variant="outline" render={<Link href="/org/scan" />} nativeButton={false}>
           Scan again
         </Button>
       </div>

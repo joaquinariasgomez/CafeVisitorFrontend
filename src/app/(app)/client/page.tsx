@@ -65,7 +65,7 @@ export default function ClientHomePage() {
       <Section
         title="Recent orders"
         action={
-          <Button variant="ghost" size="sm" render={<Link href="/client/orders" />}>
+          <Button variant="ghost" size="sm" render={<Link href="/client/orders" />} nativeButton={false}>
             See all <ChevronRightIcon />
           </Button>
         }

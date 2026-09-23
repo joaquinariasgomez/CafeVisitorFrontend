@@ -22,7 +22,7 @@ export default async function Page({ searchParams }: PageProps<'/auth/error'>) {
             )}
           </CardContent>
           <CardFooter>
-            <Button render={<Link href="/auth/login" />} variant="outline">
+            <Button render={<Link href="/auth/login" />} nativeButton={false} variant="outline">
               Back to sign in
             </Button>
           </CardFooter>

@@ -30,7 +30,7 @@ export function OrgGuard({ children }: { children: (active: ActiveOrganization) 
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button render={<Link href="/client" />}>Go to client view</Button>
+          <Button render={<Link href="/client" />} nativeButton={false}>Go to client view</Button>
         </EmptyContent>
       </Empty>
     )

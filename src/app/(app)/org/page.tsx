@@ -28,7 +28,7 @@ function OrgHome({ organization, organizations, cafeteria, setActive }: ActiveOr
       <FinishSetupBanner organization={organization} />
 
       <div className="flex flex-col gap-2">
-        <Button size="lg" className="h-16 w-full text-base" render={<Link href="/org/scan" />} disabled={!cafeteria}>
+        <Button size="lg" className="h-16 w-full text-base" render={<Link href="/org/scan" />} nativeButton={false} disabled={!cafeteria}>
           <ScanLineIcon className="size-6" /> Register order
         </Button>
         {!cafeteria ? (
@@ -54,7 +54,7 @@ function OrgHome({ organization, organizations, cafeteria, setActive }: ActiveOr
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Recent orders</h2>
-          <Button variant="ghost" size="sm" render={<Link href="/org/stats" />}>
+          <Button variant="ghost" size="sm" render={<Link href="/org/stats" />} nativeButton={false}>
             Stats <ChevronRightIcon />
           </Button>
         </div>

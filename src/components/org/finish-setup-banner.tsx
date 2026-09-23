@@ -13,7 +13,7 @@ export function FinishSetupBanner({ organization }: { organization: Organization
       <AlertTitle>Finish setting up {organization.displayName}</AlertTitle>
       <AlertDescription>Confirm the name and add your first cafeteria to start registering orders.</AlertDescription>
       <AlertAction>
-        <Button size="sm" render={<Link href={`/onboarding/${organization.id}`} />}>
+        <Button size="sm" render={<Link href={`/onboarding/${organization.id}`} />} nativeButton={false}>
           Set up
         </Button>
       </AlertAction>
