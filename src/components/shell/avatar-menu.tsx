@@ -37,10 +37,12 @@ export function AvatarMenu({ context, view }: { context: UserContext; view: AppV
         <UserAvatar name={context.user.displayName} avatarUrl={context.user.avatarUrl} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="flex flex-col">
-          <span className="font-medium text-foreground">{context.user.displayName ?? 'Your account'}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">{context.user.email}</span>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col">
+            <span className="font-medium text-foreground">{context.user.displayName ?? 'Your account'}</span>
+            <span className="truncate text-xs font-normal text-muted-foreground">{context.user.email}</span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {hasOrganizations(context) ? (
           <>
