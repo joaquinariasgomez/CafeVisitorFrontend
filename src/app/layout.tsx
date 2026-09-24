@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description:
     'Collect stamps at your favorite cafeterias and let staff register your orders with a QR code.',
+  applicationName: APP_NAME,
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: 'default' },
 }
 
 export const viewport: Viewport = {
