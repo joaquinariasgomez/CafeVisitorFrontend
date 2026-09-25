@@ -56,7 +56,7 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       organizations: organizationsFor(state.me.id),
       pendingInvitations: state.invitations
         .filter((i) => i.userId === state.me.id && i.status === 'pending')
-        .map(({ id, organization, role, sentBy, expiresAt }) => ({ id, organization, role, sentBy, expiresAt })),
+        .map(({ id, organization, role, expiresAt }) => ({ id, organization, role, expiresAt })),
     }
   }
 

@@ -28,7 +28,7 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
           if (invitation.role === 'owner') {
             toast.add({
               type: 'success',
-              title: `You now own ${invitation.displayName}`,
+              title: `You now own ${invitation.organization.displayName}`,
               description: 'Let’s finish setting it up.',
             })
             router.push(`/onboarding/${invitation.organization.id}`)
@@ -54,7 +54,6 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
           <Badge variant="secondary">{roleLabel(invitation.role)}</Badge>
         </CardTitle>
         <CardDescription>
-          {invitation.sentBy?.displayName ? `Invited by ${invitation.sentBy.displayName}. ` : ''}
           {invitation.role === 'owner'
             ? 'Accepting makes you the owner and starts the setup of the organization.'
             : 'Accepting lets you register orders for this organization.'}
