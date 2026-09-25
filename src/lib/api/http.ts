@@ -3,7 +3,7 @@ import type { z } from 'zod'
 import { backendFetch } from '@/lib/backend/client'
 import type { Api } from './api'
 import { ApiError } from './errors'
-import { userContextSchema } from './types'
+import { organizationSchema, userContextSchema } from './types'
 
 async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
   const response = await backendFetch(path, init)
@@ -14,6 +14,13 @@ async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestIn
   const parsed = schema.safeParse(body)
   if (!parsed.success) throw new ApiError('invalid_response', `Unexpected response from ${path}`)
   return parsed.data
+}
+
+async function postVoid(path: string): Promise<void> {
+  const response = await backendFetch(path, { method: 'POST' })
+  if (response.status === 403) throw new ApiError('forbidden', 'You do not have permission to do that', 403)
+  if (response.status === 404) throw new ApiError('not_found', 'Not found', 404)
+  if (!response.ok) throw new ApiError('unknown', `Backend request failed (${response.status})`, response.status)
 }
 
 // Endpoints other than /user/context do not exist in the backend yet. Each placeholder names
@@ -27,7 +34,10 @@ export function createHttpApi(): Api {
     getUserContext: () => fetchJson('/user/context', userContextSchema),
     listMyOrders: notImplemented('listMyOrders', 'GET /user/orders?cafeteriaId='),
     getStampCards: notImplemented('getStampCards', 'GET /user/stamp-cards'),
-    respondToInvitation: notImplemented('respondToInvitation', 'POST /user/invitations/:id/respond'),
+    acceptInvitation: (invitationId) =>
+      postVoid(`/organization-invitations/${encodeURIComponent(invitationId)}/accept`),
+    rejectInvitation: (invitationId) =>
+      postVoid(`/organization-invitations/${encodeURIComponent(invitationId)}/reject`),
     lookupCustomer: notImplemented('lookupCustomer', 'GET /cafeterias/:cafeteriaId/customers/:qrToken'),
     registerOrder: notImplemented('registerOrder', 'POST /orders'),
     getCafeteriaStats: notImplemented('getCafeteriaStats', 'GET /cafeterias/:id/stats'),
@@ -36,6 +46,14 @@ export function createHttpApi(): Api {
     sendInvitation: notImplemented('sendInvitation', 'POST /organizations/:id/invitations'),
     listCafeterias: notImplemented('listCafeterias', 'GET /organizations/:id/cafeterias'),
     createCafeteria: notImplemented('createCafeteria', 'POST /organizations/:id/cafeterias'),
-    completeOrganizationSetup: notImplemented('completeOrganizationSetup', 'POST /organizations/:id/setup'),
+    completeOrganizationSetup: (organizationId, { displayName, cafeteria }) =>
+      fetchJson('/organizations/setup', organizationSchema, {
+        method: 'POST',
+        body: JSON.stringify({
+          organizationId,
+          displayName,
+          setupCafeteriaRequest: cafeteria,
+        }),
+      }),
   }
 }

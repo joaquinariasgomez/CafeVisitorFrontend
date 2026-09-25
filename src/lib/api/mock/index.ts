@@ -60,6 +60,16 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
     }
   }
 
+  async function updateInvitation(invitationId: string, status: 'accepted' | 'rejected') {
+    await delay()
+    const invitation = state.invitations.find((i) => i.id === invitationId && i.userId === state.me.id)
+    if (!invitation) throw new ApiError('not_found', 'Invitation not found', 404)
+    invitation.status = status
+    if (status === 'accepted') {
+      state.memberships.push({ userId: state.me.id, organizationId: invitation.organization.id, role: invitation.role })
+    }
+  }
+
   const api: Api = {
     async getUserContext() {
       await delay()
@@ -79,14 +89,12 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       return state.cafeterias.filter((c) => visited.has(c.id)).map((c) => stampCardFor(state, state.me.id, c))
     },
 
-    async respondToInvitation(invitationId, decision) {
-      await delay()
-      const invitation = state.invitations.find((i) => i.id === invitationId && i.userId === state.me.id)
-      if (!invitation) throw new ApiError('not_found', 'Invitation not found', 404)
-      invitation.status = decision
-      if (decision === 'accepted') {
-        state.memberships.push({ userId: state.me.id, organizationId: invitation.organization.id, role: invitation.role })
-      }
+    async acceptInvitation(invitationId) {
+      await updateInvitation(invitationId, 'accepted')
+    },
+
+    async rejectInvitation(invitationId) {
+      await updateInvitation(invitationId, 'rejected')
     },
 
     async lookupCustomer({ qrToken, cafeteriaId }) {

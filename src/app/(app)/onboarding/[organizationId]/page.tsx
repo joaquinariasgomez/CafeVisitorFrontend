@@ -13,7 +13,19 @@ export default function OnboardingPage({ params }: PageProps<'/onboarding/[organ
   const { organizationId } = use(params)
   const router = useRouter()
   const context = useUserContext()
-  const organization = context.data?.organizations.find((o) => o.id === organizationId)
+  const activeOrganization = context.data?.organizations.find((o) => o.id === organizationId)
+  const invitation = context.data?.pendingInvitations.find((i) => i.organization.id === organizationId)
+  const organization =
+    activeOrganization ??
+    (invitation
+      ? {
+        id: invitation.organization.id,
+        displayName: invitation.organization.displayName,
+        status: 'pending' as const,
+        role: invitation.role,
+        cafeterias: [],
+      }
+      : undefined)
   const alreadyDone = Boolean(organization && (organization.status === 'created' || organization.role !== 'owner'))
 
   useEffect(() => {

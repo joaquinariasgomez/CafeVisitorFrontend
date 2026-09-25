@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useApi } from '@/lib/api'
-import type { InvitationDecision } from '@/lib/api/api'
 import { queryKeys } from '@/lib/query/keys'
 
 export function useMyOrders(cafeteriaId?: string) {
@@ -19,12 +18,14 @@ export function useStampCards() {
   return useQuery({ queryKey: queryKeys.stampCards, queryFn: () => api.getStampCards() })
 }
 
-export function useRespondToInvitation() {
+export function useInvitationAction(action: 'accept' | 'reject', invalidateContext = true) {
   const api = useApi()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ invitationId, decision }: { invitationId: string; decision: InvitationDecision }) =>
-      api.respondToInvitation(invitationId, decision),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.userContext }),
+    mutationFn: (invitationId: string) =>
+      action === 'accept' ? api.acceptInvitation(invitationId) : api.rejectInvitation(invitationId),
+    onSuccess: () => {
+      if (invalidateContext) return queryClient.invalidateQueries({ queryKey: queryKeys.userContext })
+    },
   })
 }

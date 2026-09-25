@@ -7,18 +7,22 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from '@/components/ui/toast'
-import { useRespondToInvitation } from '@/hooks/use-client-data'
+import { useInvitationAction } from '@/hooks/use-client-data'
 import { errorMessage } from '@/lib/api/errors'
 import type { Invitation } from '@/lib/api/types'
 import { roleLabel } from '@/lib/roles'
 
 export function InvitationCard({ invitation }: { invitation: Invitation }) {
   const router = useRouter()
-  const respond = useRespondToInvitation()
+  const organizationId = invitation.organization.id
+  const accept = useInvitationAction('accept', invitation.role !== 'owner')
+  const reject = useInvitationAction('reject')
+  const isPending = accept.isPending || reject.isPending
 
   const handle = (decision: 'accepted' | 'rejected') => {
-    respond.mutate(
-      { invitationId: invitation.id, decision },
+    const mutation = decision === 'accepted' ? accept : reject
+    mutation.mutate(
+      invitation.id,
       {
         onSuccess: () => {
           if (decision === 'rejected') {
@@ -31,7 +35,7 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
               title: `You now own ${invitation.organization.displayName}`,
               description: 'Let’s finish setting it up.',
             })
-            router.push(`/onboarding/${invitation.organization.id}`)
+            router.push(`/onboarding/${organizationId}`)
             return
           }
           toast.add({
@@ -60,10 +64,10 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
         </CardDescription>
       </CardHeader>
       <CardFooter className="gap-2">
-        <Button size="sm" onClick={() => handle('accepted')} disabled={respond.isPending}>
+        <Button size="sm" onClick={() => handle('accepted')} disabled={isPending}>
           Accept
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => handle('rejected')} disabled={respond.isPending}>
+        <Button size="sm" variant="ghost" onClick={() => handle('rejected')} disabled={isPending}>
           Decline
         </Button>
       </CardFooter>
