@@ -28,7 +28,7 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
           if (invitation.role === 'owner') {
             toast.add({
               type: 'success',
-              title: `You now own ${invitation.organization.displayName}`,
+              title: `You now own ${invitation.displayName}`,
               description: 'Let’s finish setting it up.',
             })
             router.push(`/onboarding/${invitation.organization.id}`)
