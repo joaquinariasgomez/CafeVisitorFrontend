@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useApi } from '@/lib/api'
 import { queryKeys } from '@/lib/query/keys'
@@ -9,9 +9,19 @@ export type InvitationDecision = 'accepted' | 'rejected'
 
 export function useMyOrders(cafeteriaId?: string) {
   const api = useApi()
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.myOrders(cafeteriaId),
-    queryFn: () => api.listMyOrders(cafeteriaId ? { cafeteriaId } : undefined),
+    queryFn: ({ pageParam }) => api.listMyOrders({ cafeteriaId, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+  })
+}
+
+export function useRecentOrders(limit = 5) {
+  const api = useApi()
+  return useQuery({
+    queryKey: queryKeys.recentOrders(limit),
+    queryFn: async () => (await api.listMyOrders({ limit })).items,
   })
 }
 

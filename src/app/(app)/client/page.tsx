@@ -11,7 +11,7 @@ import { CompleteProfileBanner } from '@/components/shared/complete-profile-bann
 import { ErrorCard } from '@/components/shared/error-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMyOrders, useStampCards } from '@/hooks/use-client-data'
+import { useRecentOrders, useStampCards } from '@/hooks/use-client-data'
 import { useUserContext } from '@/hooks/use-user-context'
 
 function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
@@ -29,7 +29,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
 export default function ClientHomePage() {
   const context = useUserContext()
   const stampCards = useStampCards()
-  const orders = useMyOrders()
+  const orders = useRecentOrders(5)
 
   if (context.isError) return <ErrorCard error={context.error} onRetry={() => context.refetch()} />
   if (!context.data) return <Skeleton className="h-40 w-full rounded-2xl" />
@@ -74,7 +74,7 @@ export default function ClientHomePage() {
       >
         {orders.isPending ? <Skeleton className="h-32 w-full rounded-2xl" /> : null}
         {orders.isError ? <ErrorCard error={orders.error} onRetry={() => orders.refetch()} /> : null}
-        {orders.data ? <OrderList orders={orders.data.slice(0, 5)} grouped={false} /> : null}
+        {orders.data ? <OrderList orders={orders.data} grouped={false} /> : null}
       </Section>
     </div>
   )

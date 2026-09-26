@@ -54,6 +54,13 @@ export const orderSchema = z.object({
 })
 export type Order = z.infer<typeof orderSchema>
 
+/** One keyset page, newest first. `nextCursor` is null on the last page. */
+export const orderPageSchema = z.object({
+  items: z.array(orderSchema),
+  nextCursor: z.string().nullable(),
+})
+export type OrderPage = z.infer<typeof orderPageSchema>
+
 export const stampCardSchema = z.object({
   cafeteria: cafeteriaSchema,
   orderCount: z.number().int().nonnegative(),
@@ -79,6 +86,12 @@ export const cafeteriaOrderSchema = orderSchema.extend({
 })
 export type CafeteriaOrder = z.infer<typeof cafeteriaOrderSchema>
 
+export const cafeteriaOrderPageSchema = z.object({
+  items: z.array(cafeteriaOrderSchema),
+  nextCursor: z.string().nullable(),
+})
+export type CafeteriaOrderPage = z.infer<typeof cafeteriaOrderPageSchema>
+
 export const cafeteriaStatsSchema = z.object({
   ordersToday: z.number().int(),
   uniqueCustomersToday: z.number().int(),
@@ -86,7 +99,6 @@ export const cafeteriaStatsSchema = z.object({
   ordersLast7Days: z.number().int(),
   ordersLast30Days: z.number().int(),
   ordersPerDay: z.array(z.object({ date: z.string(), count: z.number().int() })),
-  recentOrders: z.array(cafeteriaOrderSchema),
 })
 export type CafeteriaStats = z.infer<typeof cafeteriaStatsSchema>
 

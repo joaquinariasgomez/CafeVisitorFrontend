@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useApi } from '@/lib/api'
 import type { CafeteriaInput, RegisterOrderInput } from '@/lib/api/api'
@@ -24,6 +24,7 @@ export function useRegisterOrder() {
     mutationFn: (input: RegisterOrderInput) => api.registerOrder(input),
     onSuccess: (_result, input) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cafeteriaStats(input.cafeteriaId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.cafeteriaOrders(input.cafeteriaId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.customer(input.qrToken, input.cafeteriaId) })
     },
   })
@@ -34,6 +35,26 @@ export function useCafeteriaStats(cafeteriaId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.cafeteriaStats(cafeteriaId ?? ''),
     queryFn: () => api.getCafeteriaStats(cafeteriaId as string),
+    enabled: Boolean(cafeteriaId),
+  })
+}
+
+export function useCafeteriaOrders(cafeteriaId: string | undefined) {
+  const api = useApi()
+  return useInfiniteQuery({
+    queryKey: queryKeys.cafeteriaOrders(cafeteriaId ?? ''),
+    queryFn: ({ pageParam }) => api.listCafeteriaOrders(cafeteriaId as string, { cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: Boolean(cafeteriaId),
+  })
+}
+
+export function useRecentCafeteriaOrders(cafeteriaId: string | undefined, limit = 5) {
+  const api = useApi()
+  return useQuery({
+    queryKey: queryKeys.recentCafeteriaOrders(cafeteriaId ?? '', limit),
+    queryFn: async () => (await api.listCafeteriaOrders(cafeteriaId as string, { limit })).items,
     enabled: Boolean(cafeteriaId),
   })
 }

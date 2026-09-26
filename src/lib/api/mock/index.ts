@@ -9,6 +9,24 @@ export { MOCK_CUSTOMER_TOKEN } from './fixtures'
 export * from './persona'
 
 const DAY_MS = 86_400_000
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 50
+
+type OrderKey = { createdAt: string; id: string }
+
+function compareKeys(a: OrderKey, b: OrderKey) {
+  return a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id)
+}
+
+function encodeCursor({ createdAt, id }: OrderKey) {
+  return btoa(`${createdAt}|${id}`)
+}
+
+function decodeCursor(cursor: string): OrderKey {
+  const [createdAt, id] = atob(cursor).split('|')
+  if (!createdAt || !id) throw new ApiError('unknown', 'Invalid cursor', 400)
+  return { createdAt, id }
+}
 
 export function createMockApi(persona: MockPersona = readPersona()): Api {
   const state: MockState = buildState(persona)
@@ -98,11 +116,21 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       return next
     },
 
-    async listMyOrders(params) {
+    async listMyOrders({ cafeteriaId, cursor, limit }) {
       await delay()
-      return state.orders
-        .filter((o) => o.userEmail === state.me.email && (!params?.cafeteriaId || o.cafeteriaId === params.cafeteriaId))
-        .map((o) => toOrder(state, o))
+      const pageSize = Math.min(Math.max(limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
+      const after = cursor ? decodeCursor(cursor) : null
+      const rows = state.orders
+        .filter((o) => o.userEmail === state.me.email && (!cafeteriaId || o.cafeteriaId === cafeteriaId))
+        .sort((a, b) => compareKeys(b, a))
+        .filter((o) => !after || compareKeys(o, after) < 0)
+        .slice(0, pageSize + 1)
+      const page = rows.slice(0, pageSize)
+      const last = page.at(-1)
+      return {
+        items: page.map((o) => toOrder(state, o)),
+        nextCursor: rows.length > pageSize && last ? encodeCursor(last) : null,
+      }
     },
 
     async getStampCards() {
@@ -175,15 +203,32 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
         ordersLast7Days: rows.filter((o) => new Date(o.createdAt) >= since(7)).length,
         ordersLast30Days: rows.filter((o) => new Date(o.createdAt) >= since(30)).length,
         ordersPerDay,
-        recentOrders: rows.slice(0, 10).map((o) => {
+      }
+      return stats
+    },
+
+    async listCafeteriaOrders(cafeteriaId, { cursor, limit }) {
+      await delay()
+      requireCafeteria(cafeteriaId)
+      const pageSize = Math.min(Math.max(limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE)
+      const after = cursor ? decodeCursor(cursor) : null
+      const rows = state.orders
+        .filter((o) => o.cafeteriaId === cafeteriaId)
+        .sort((a, b) => compareKeys(b, a))
+        .filter((o) => !after || compareKeys(o, after) < 0)
+        .slice(0, pageSize + 1)
+      const page = rows.slice(0, pageSize)
+      const last = page.at(-1)
+      return {
+        items: page.map((o) => {
           const customer = state.users.find((u) => u.email === o.userEmail)
           return {
             ...toOrder(state, o),
             customer: { displayName: customer?.displayName ?? null, avatarUrl: customer?.avatarUrl ?? null },
           }
         }),
+        nextCursor: rows.length > pageSize && last ? encodeCursor(last) : null,
       }
-      return stats
     },
 
     async listMembers(organizationId) {

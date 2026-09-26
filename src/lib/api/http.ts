@@ -4,7 +4,10 @@ import { backendFetch } from '@/lib/backend/client'
 import type { Api } from './api'
 import { ApiError } from './errors'
 import {
+  cafeteriaOrderPageSchema,
+  cafeteriaStatsSchema,
   customerLookupSchema,
+  orderPageSchema,
   organizationInvitationSchema,
   organizationSchema,
   registerOrderResultSchema,
@@ -57,7 +60,13 @@ export function createHttpApi(): Api {
         method: 'PATCH',
         body: JSON.stringify({ displayName: displayName?.trim(), email: email?.trim() }),
       }),
-    listMyOrders: notImplemented('listMyOrders', 'GET /users/orders?cafeteriaId='),
+    listMyOrders: ({ cafeteriaId, cursor, limit }) => {
+      const query = new URLSearchParams()
+      if (cafeteriaId) query.set('cafeteriaId', cafeteriaId)
+      if (cursor) query.set('cursor', cursor)
+      if (limit !== undefined) query.set('limit', String(limit))
+      return fetchJson(`/users/orders?${query}`, orderPageSchema)
+    },
     getStampCards: notImplemented('getStampCards', 'GET /users/stamp-cards'),
     acceptInvitation: (invitationId) => postVoid(`/organizations/invitations/${encodeURIComponent(invitationId)}/accept`),
     rejectInvitation: (invitationId) => postVoid(`/organizations/invitations/${encodeURIComponent(invitationId)}/reject`),
@@ -68,7 +77,18 @@ export function createHttpApi(): Api {
         method: 'POST',
         body: JSON.stringify({ qrToken, cafeteriaId, items, note: note ?? null }),
       }),
-    getCafeteriaStats: notImplemented('getCafeteriaStats', 'GET /cafeterias/:id/stats'),
+    getCafeteriaStats: (cafeteriaId) =>
+      fetchJson(`/cafeterias/${encodeURIComponent(cafeteriaId)}/stats`, cafeteriaStatsSchema),
+    listCafeteriaOrders: (cafeteriaId, { cursor, limit }) => {
+      const query = new URLSearchParams()
+      if (cursor) query.set('cursor', cursor)
+      if (limit !== undefined) query.set('limit', String(limit))
+      const qs = query.toString()
+      return fetchJson(
+        `/cafeterias/${encodeURIComponent(cafeteriaId)}/orders${qs ? `?${qs}` : ''}`,
+        cafeteriaOrderPageSchema
+      )
+    },
     listMembers: notImplemented('listMembers', 'GET /organizations/:id/members'),
     listOrganizationInvitations: (organizationId) =>
       fetchJson(`/organizations/${encodeURIComponent(organizationId)}/invitations`, z.array(organizationInvitationSchema)),

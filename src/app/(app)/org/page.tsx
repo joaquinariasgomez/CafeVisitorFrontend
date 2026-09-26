@@ -12,11 +12,12 @@ import { CompleteProfileBanner } from '@/components/shared/complete-profile-bann
 import { ErrorCard } from '@/components/shared/error-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCafeteriaStats } from '@/hooks/use-org-data'
+import { useCafeteriaStats, useRecentCafeteriaOrders } from '@/hooks/use-org-data'
 import { formatRelative } from '@/lib/format'
 
 function OrgHome({ organization, organizations, unfinishedOrganization, cafeteria, setActive }: ActiveOrganization) {
   const stats = useCafeteriaStats(cafeteria?.id)
+  const recentOrders = useRecentCafeteriaOrders(cafeteria?.id, 5)
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,10 +61,14 @@ function OrgHome({ organization, organizations, unfinishedOrganization, cafeteri
             Stats <ChevronRightIcon />
           </Button>
         </div>
-        {stats.isPending ? <Skeleton className="h-40 w-full rounded-2xl" /> : null}
-        {stats.data ? (
+        {cafeteria && recentOrders.isPending ? <Skeleton className="h-40 w-full rounded-2xl" /> : null}
+        {recentOrders.isError ? <ErrorCard error={recentOrders.error} onRetry={() => recentOrders.refetch()} /> : null}
+        {!cafeteria ? (
+          <OrderList orders={[]} emptyTitle="No orders yet" emptyDescription="Registered orders will appear here." />
+        ) : null}
+        {recentOrders.data ? (
           <OrderList
-            orders={stats.data.recentOrders.slice(0, 5)}
+            orders={recentOrders.data}
             grouped={false}
             emptyTitle="No orders yet"
             emptyDescription="Registered orders will appear here."

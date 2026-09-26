@@ -1,9 +1,10 @@
 import type {
   Cafeteria,
+  CafeteriaOrderPage,
   CafeteriaStats,
   CustomerLookup,
   Member,
-  Order,
+  OrderPage,
   Organization,
   OrganizationInvitation,
   OrganizationRole,
@@ -25,6 +26,17 @@ export interface CafeteriaInput {
   location: string
 }
 
+export interface CafeteriaOrdersParams {
+  cursor?: string
+  limit?: number
+}
+
+export interface MyOrdersParams {
+  cafeteriaId?: string
+  cursor?: string
+  limit?: number
+}
+
 export interface ProfileInput {
   displayName?: string
   email?: string
@@ -33,7 +45,7 @@ export interface ProfileInput {
 export interface Api {
   getUserContext(): Promise<UserContext>
   updateProfile(input: ProfileInput): Promise<User>
-  listMyOrders(params?: { cafeteriaId?: string }): Promise<Order[]>
+  listMyOrders(params: MyOrdersParams): Promise<OrderPage>
   getStampCards(): Promise<StampCard[]>
   acceptInvitation(invitationId: string): Promise<void>
   rejectInvitation(invitationId: string): Promise<void>
@@ -41,6 +53,7 @@ export interface Api {
   lookupCustomer(params: { qrToken: string; cafeteriaId: string }): Promise<CustomerLookup>
   registerOrder(input: RegisterOrderInput): Promise<RegisterOrderResult>
   getCafeteriaStats(cafeteriaId: string): Promise<CafeteriaStats>
+  listCafeteriaOrders(cafeteriaId: string, params: CafeteriaOrdersParams): Promise<CafeteriaOrderPage>
 
   listMembers(organizationId: string): Promise<Member[]>
   listOrganizationInvitations(organizationId: string): Promise<OrganizationInvitation[]>
