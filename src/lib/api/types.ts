@@ -4,7 +4,6 @@ export const organizationRoleSchema = z.enum(['owner', 'admin', 'member'])
 export type OrganizationRole = z.infer<typeof organizationRoleSchema>
 
 export const userSchema = z.object({
-  id: z.string(),
   displayName: z.string().nullable(),
   email: z.string().nullable(),
   avatarUrl: z.string().nullable(),
@@ -33,7 +32,7 @@ export const invitationSchema = z.object({
   id: z.string(),
   organization: z.object({ id: z.string(), displayName: z.string() }),
   role: organizationRoleSchema,
-  sentBy: z.object({ displayName: z.string().nullable() }).nullable(),
+  status: z.enum(['pending', 'accepted', 'rejected']),
   expiresAt: z.string(),
 })
 export type Invitation = z.infer<typeof invitationSchema>
@@ -64,7 +63,7 @@ export const stampCardSchema = z.object({
 export type StampCard = z.infer<typeof stampCardSchema>
 
 export const customerLookupSchema = z.object({
-  user: userSchema.pick({ id: true, displayName: true, email: true, avatarUrl: true }),
+  user: userSchema.pick({ displayName: true, email: true, avatarUrl: true }),
   stampCard: stampCardSchema.nullable(),
 })
 export type CustomerLookup = z.infer<typeof customerLookupSchema>
@@ -92,7 +91,7 @@ export const cafeteriaStatsSchema = z.object({
 export type CafeteriaStats = z.infer<typeof cafeteriaStatsSchema>
 
 export const memberSchema = z.object({
-  user: userSchema.pick({ id: true, displayName: true, email: true, avatarUrl: true }),
+  user: userSchema.pick({ displayName: true, email: true, avatarUrl: true }),
   role: organizationRoleSchema,
 })
 export type Member = z.infer<typeof memberSchema>

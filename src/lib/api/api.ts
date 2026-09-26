@@ -12,8 +12,6 @@ import type {
   UserContext,
 } from './types'
 
-export type InvitationDecision = 'accepted' | 'rejected'
-
 export interface RegisterOrderInput {
   cafeteriaId: string
   qrToken: string
@@ -30,7 +28,8 @@ export interface Api {
   getUserContext(): Promise<UserContext>
   listMyOrders(params?: { cafeteriaId?: string }): Promise<Order[]>
   getStampCards(): Promise<StampCard[]>
-  respondToInvitation(invitationId: string, decision: InvitationDecision): Promise<void>
+  acceptInvitation(invitationId: string): Promise<void>
+  rejectInvitation(invitationId: string): Promise<void>
 
   lookupCustomer(params: { qrToken: string; cafeteriaId: string }): Promise<CustomerLookup>
   registerOrder(input: RegisterOrderInput): Promise<RegisterOrderResult>

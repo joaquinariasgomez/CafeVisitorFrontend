@@ -16,6 +16,16 @@ async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestIn
   return parsed.data
 }
 
+async function postVoid(path: string, body?: unknown): Promise<void> {
+  const response = await backendFetch(path, {
+    method: 'POST',
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  })
+  if (response.status === 403) throw new ApiError('forbidden', 'You do not have permission to do that', 403)
+  if (response.status === 404) throw new ApiError('not_found', 'Not found', 404)
+  if (!response.ok) throw new ApiError('unknown', `Backend request failed (${response.status})`, response.status)
+}
+
 // Endpoints other than /user/context do not exist in the backend yet. Each placeholder names
 // the intended route so wiring them later is a one-line change to a fetchJson call.
 const notImplemented = (name: string, intendedRoute: string) => async () => {
@@ -27,7 +37,8 @@ export function createHttpApi(): Api {
     getUserContext: () => fetchJson('/user/context', userContextSchema),
     listMyOrders: notImplemented('listMyOrders', 'GET /user/orders?cafeteriaId='),
     getStampCards: notImplemented('getStampCards', 'GET /user/stamp-cards'),
-    respondToInvitation: notImplemented('respondToInvitation', 'POST /user/invitations/:id/respond'),
+    acceptInvitation: (invitationId) => postVoid(`/organization-invitations/${encodeURIComponent(invitationId)}/accept`),
+    rejectInvitation: (invitationId) => postVoid(`/organization-invitations/${encodeURIComponent(invitationId)}/reject`),
     lookupCustomer: notImplemented('lookupCustomer', 'GET /cafeterias/:cafeteriaId/customers/:qrToken'),
     registerOrder: notImplemented('registerOrder', 'POST /orders'),
     getCafeteriaStats: notImplemented('getCafeteriaStats', 'GET /cafeterias/:id/stats'),
