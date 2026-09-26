@@ -3,7 +3,7 @@ import type { z } from 'zod'
 import { backendFetch } from '@/lib/backend/client'
 import type { Api } from './api'
 import { ApiError } from './errors'
-import { organizationSchema, userContextSchema } from './types'
+import { userContextSchema } from './types'
 
 async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
   const response = await backendFetch(path, init)
@@ -16,8 +16,11 @@ async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestIn
   return parsed.data
 }
 
-async function postVoid(path: string): Promise<void> {
-  const response = await backendFetch(path, { method: 'POST' })
+async function postVoid(path: string, body?: unknown): Promise<void> {
+  const response = await backendFetch(path, {
+    method: 'POST',
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  })
   if (response.status === 403) throw new ApiError('forbidden', 'You do not have permission to do that', 403)
   if (response.status === 404) throw new ApiError('not_found', 'Not found', 404)
   if (!response.ok) throw new ApiError('unknown', `Backend request failed (${response.status})`, response.status)
@@ -47,13 +50,10 @@ export function createHttpApi(): Api {
     listCafeterias: notImplemented('listCafeterias', 'GET /organizations/:id/cafeterias'),
     createCafeteria: notImplemented('createCafeteria', 'POST /organizations/:id/cafeterias'),
     completeOrganizationSetup: (organizationId, { displayName, cafeteria }) =>
-      fetchJson('/organizations/setup', organizationSchema, {
-        method: 'POST',
-        body: JSON.stringify({
-          organizationId,
-          displayName,
-          setupCafeteriaRequest: cafeteria,
-        }),
+      postVoid('/organizations/setup', {
+        organizationId,
+        displayName,
+        setupCafeteriaRequest: cafeteria,
       }),
   }
 }

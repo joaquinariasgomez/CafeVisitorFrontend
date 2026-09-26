@@ -28,10 +28,9 @@ export function OrganizationSetupWizard({ organization }: { organization: Organi
     complete.mutate(
       { displayName, cafeteria: { displayName: cafeteriaName, location } },
       {
-        onSuccess: (org) => {
-          const first = org.cafeterias[0]
-          setActive(org.id, first?.id ?? null)
-          toast.add({ type: 'success', title: `${org.displayName} is ready`, description: 'You can start registering orders.' })
+        onSuccess: () => {
+          setActive(organization.id, null)
+          toast.add({ type: 'success', title: `${displayName} is ready`, description: 'You can start registering orders.' })
           router.replace('/org')
         },
         onError: (error) =>

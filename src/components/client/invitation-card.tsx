@@ -20,6 +20,11 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
   const isPending = accept.isPending || reject.isPending
 
   const handle = (decision: 'accepted' | 'rejected') => {
+    if (decision === 'accepted' && invitation.role === 'owner') {
+      router.push(`/onboarding/${organizationId}`)
+      return
+    }
+
     const mutation = decision === 'accepted' ? accept : reject
     mutation.mutate(
       invitation.id,
@@ -27,15 +32,6 @@ export function InvitationCard({ invitation }: { invitation: Invitation }) {
         onSuccess: () => {
           if (decision === 'rejected') {
             toast.add({ title: 'Invitation declined' })
-            return
-          }
-          if (invitation.role === 'owner') {
-            toast.add({
-              type: 'success',
-              title: `You now own ${invitation.organization.displayName}`,
-              description: 'Let’s finish setting it up.',
-            })
-            router.push(`/onboarding/${organizationId}`)
             return
           }
           toast.add({

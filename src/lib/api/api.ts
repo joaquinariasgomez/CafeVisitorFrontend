@@ -46,5 +46,5 @@ export interface Api {
   completeOrganizationSetup(
     organizationId: string,
     params: { displayName: string; cafeteria: CafeteriaInput }
-  ): Promise<Organization>
+  ): Promise<void>
 }
