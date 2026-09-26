@@ -13,9 +13,9 @@ const DAY_MS = 86_400_000
 export function createMockApi(persona: MockPersona = readPersona()): Api {
   const state: MockState = buildState(persona)
 
-  function organizationsFor(userId: string): Organization[] {
+  function organizationsFor(userEmail: string): Organization[] {
     return state.memberships
-      .filter((m) => m.userId === userId)
+      .filter((m) => m.userEmail === userEmail)
       .map((m) => {
         const org = state.organizations.find((o) => o.id === m.organizationId)
         if (!org) throw new ApiError('not_found', 'Organization not found', 404)
@@ -30,7 +30,7 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
   }
 
   function requireMembership(organizationId: string, roles: OrganizationRole[] = ['owner', 'admin', 'member']) {
-    const membership = state.memberships.find((m) => m.userId === state.me.id && m.organizationId === organizationId)
+    const membership = state.memberships.find((m) => m.userEmail === state.me.email && m.organizationId === organizationId)
     if (!membership || !roles.includes(membership.role)) {
       throw new ApiError('forbidden', 'You do not have access to this organization', 403)
     }
@@ -50,13 +50,21 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
     return user
   }
 
+  function requirePendingInvitation(invitationId: string) {
+    const invitation = state.invitations.find(
+      (i) => i.id === invitationId && i.email === state.me.email && i.status === 'pending'
+    )
+    if (!invitation) throw new ApiError('not_found', 'Invitation not found', 404)
+    return invitation
+  }
+
   function context(): UserContext {
     return {
       user: state.me,
-      organizations: organizationsFor(state.me.id),
+      organizations: organizationsFor(state.me.email),
       pendingInvitations: state.invitations
-        .filter((i) => i.userId === state.me.id && i.status === 'pending')
-        .map(({ id, organization, role, expiresAt }) => ({ id, organization, role, expiresAt })),
+        .filter((i) => i.email === state.me.email && i.status === 'pending')
+        .map(({ id, organization, role, status, expiresAt }) => ({ id, organization, role, status, expiresAt })),
     }
   }
 
@@ -69,32 +77,34 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
     async listMyOrders(params) {
       await delay()
       return state.orders
-        .filter((o) => o.userId === state.me.id && (!params?.cafeteriaId || o.cafeteriaId === params.cafeteriaId))
+        .filter((o) => o.userEmail === state.me.email && (!params?.cafeteriaId || o.cafeteriaId === params.cafeteriaId))
         .map((o) => toOrder(state, o))
     },
 
     async getStampCards() {
       await delay()
-      const visited = new Set(state.orders.filter((o) => o.userId === state.me.id).map((o) => o.cafeteriaId))
-      return state.cafeterias.filter((c) => visited.has(c.id)).map((c) => stampCardFor(state, state.me.id, c))
+      const visited = new Set(state.orders.filter((o) => o.userEmail === state.me.email).map((o) => o.cafeteriaId))
+      return state.cafeterias.filter((c) => visited.has(c.id)).map((c) => stampCardFor(state, state.me.email, c))
     },
 
-    async respondToInvitation(invitationId, decision) {
+    async acceptInvitation(invitationId) {
       await delay()
-      const invitation = state.invitations.find((i) => i.id === invitationId && i.userId === state.me.id)
-      if (!invitation) throw new ApiError('not_found', 'Invitation not found', 404)
-      invitation.status = decision
-      if (decision === 'accepted') {
-        state.memberships.push({ userId: state.me.id, organizationId: invitation.organization.id, role: invitation.role })
-      }
+      const invitation = requirePendingInvitation(invitationId)
+      invitation.status = 'accepted'
+      state.memberships.push({ userEmail: state.me.email, organizationId: invitation.organization.id, role: invitation.role })
+    },
+
+    async rejectInvitation(invitationId) {
+      await delay()
+      requirePendingInvitation(invitationId).status = 'rejected'
     },
 
     async lookupCustomer({ qrToken, cafeteriaId }) {
       await delay()
       const cafeteria = requireCafeteria(cafeteriaId)
-      const { id, displayName, email, avatarUrl } = requireCustomer(qrToken)
-      const hasVisited = state.orders.some((o) => o.userId === id && o.cafeteriaId === cafeteriaId)
-      return { user: { id, displayName, email, avatarUrl }, stampCard: hasVisited ? stampCardFor(state, id, cafeteria) : null }
+      const { displayName, email, avatarUrl } = requireCustomer(qrToken)
+      const hasVisited = state.orders.some((o) => o.userEmail === email && o.cafeteriaId === cafeteriaId)
+      return { user: { displayName, email, avatarUrl }, stampCard: hasVisited ? stampCardFor(state, email, cafeteria) : null }
     },
 
     async registerOrder({ cafeteriaId, qrToken, items, note }) {
@@ -104,14 +114,14 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       const row = {
         id: uuid(),
         cafeteriaId,
-        userId: user.id,
-        recordedByUserId: state.me.id,
+        userEmail: user.email,
+        recordedByEmail: state.me.email,
         createdAt: new Date().toISOString(),
         items,
         note: note?.trim() ? note.trim() : null,
       }
       state.orders.unshift(row)
-      return { order: toOrder(state, row), stampCard: stampCardFor(state, user.id, cafeteria) }
+      return { order: toOrder(state, row), stampCard: stampCardFor(state, user.email, cafeteria) }
     },
 
     async getCafeteriaStats(cafeteriaId) {
@@ -132,13 +142,13 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       })
       const stats: CafeteriaStats = {
         ordersToday: todayRows.length,
-        uniqueCustomersToday: new Set(todayRows.map((o) => o.userId)).size,
+        uniqueCustomersToday: new Set(todayRows.map((o) => o.userEmail)).size,
         lastOrderAt: rows[0]?.createdAt ?? null,
         ordersLast7Days: rows.filter((o) => new Date(o.createdAt) >= since(7)).length,
         ordersLast30Days: rows.filter((o) => new Date(o.createdAt) >= since(30)).length,
         ordersPerDay,
         recentOrders: rows.slice(0, 10).map((o) => {
-          const customer = state.users.find((u) => u.id === o.userId)
+          const customer = state.users.find((u) => u.email === o.userEmail)
           return {
             ...toOrder(state, o),
             customer: { displayName: customer?.displayName ?? null, avatarUrl: customer?.avatarUrl ?? null },
@@ -155,10 +165,10 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       return state.memberships
         .filter((m) => m.organizationId === organizationId)
         .map((m) => {
-          const user = state.users.find((u) => u.id === m.userId)
+          const user = state.users.find((u) => u.email === m.userEmail)
           if (!user) throw new ApiError('not_found', 'User not found', 404)
-          const { id, displayName, email, avatarUrl } = user
-          return { user: { id, displayName, email, avatarUrl }, role: m.role }
+          const { displayName, email, avatarUrl } = user
+          return { user: { displayName, email, avatarUrl }, role: m.role }
         })
     },
 

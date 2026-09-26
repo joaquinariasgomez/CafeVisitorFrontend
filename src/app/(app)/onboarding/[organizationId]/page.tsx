@@ -8,13 +8,14 @@ import { ErrorCard } from '@/components/shared/error-card'
 import { PageHeader } from '@/components/shell/page-header'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useUserContext } from '@/hooks/use-user-context'
+import { needsSetup } from '@/lib/roles'
 
 export default function OnboardingPage({ params }: PageProps<'/onboarding/[organizationId]'>) {
   const { organizationId } = use(params)
   const router = useRouter()
   const context = useUserContext()
   const organization = context.data?.organizations.find((o) => o.id === organizationId)
-  const alreadyDone = Boolean(organization && (organization.status === 'created' || organization.role !== 'owner'))
+  const alreadyDone = Boolean(organization && !needsSetup(organization))
 
   useEffect(() => {
     if (alreadyDone) router.replace('/org')

@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useCafeteriaStats } from '@/hooks/use-org-data'
 import { formatRelative } from '@/lib/format'
 
-function OrgHome({ organization, organizations, cafeteria, setActive }: ActiveOrganization) {
+function OrgHome({ organization, organizations, unfinishedOrganization, cafeteria, setActive }: ActiveOrganization) {
   const stats = useCafeteriaStats(cafeteria?.id)
 
   return (
@@ -25,7 +25,7 @@ function OrgHome({ organization, organizations, cafeteria, setActive }: ActiveOr
         cafeteria={cafeteria}
         onSelect={setActive}
       />
-      <FinishSetupBanner organization={organization} />
+      <FinishSetupBanner organization={unfinishedOrganization} />
 
       <div className="flex flex-col gap-2">
         <Button size="lg" className="h-16 w-full text-base" render={<Link href="/org/scan" />} nativeButton={false} disabled={!cafeteria}>

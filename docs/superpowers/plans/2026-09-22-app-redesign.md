@@ -4,7 +4,7 @@
 
 **Goal:** Rebuild the CafeVisitor frontend as a mobile-first, two-surface app (client dashboard and organization/cashier dashboard) running fully against a typed mock API, reusing the existing Supabase Google auth and `backendFetch`.
 
-**Architecture:** Next.js 16 App Router. Auth gate in `src/proxy.ts` (Supabase SSR). All authenticated pages are client components that read data through TanStack React Query hooks over an `Api` interface. Two adapters implement the interface: `http` (over `backendFetch`, only `/user/context` is real today) and `mock` (fixtures + in-memory mutations + personas), selected by `NEXT_PUBLIC_USE_MOCKS`.
+**Architecture:** Next.js 16 App Router. Auth gate in `src/proxy.ts` (Supabase SSR). All authenticated pages are client components that read data through TanStack React Query hooks over an `Api` interface. Two adapters implement the interface: `http` (over `backendFetch`, only `/users/context` is real today) and `mock` (fixtures + in-memory mutations + personas), selected by `NEXT_PUBLIC_USE_MOCKS`.
 
 **Tech Stack:** Next 16.3.4, React 19.2, TypeScript strict, Tailwind v4, shadcn base-nova on `@base-ui/react` 1.8, lucide-react, `qrcode`, `@tanstack/react-query` 5, `next-themes` 0.4, `@yudiel/react-qr-scanner` 2.6, `zod` 4.
 
@@ -1265,7 +1265,7 @@ git commit -m "Add mock API adapter with personas and ApiProvider"
 - Consumes: `useApi`, `Api`, schemas (Tasks 2–3).
 - Produces hooks: `useUserContext()`, `useMyOrders(cafeteriaId?)`, `useStampCards()`, `useRespondToInvitation()`, `useCustomerLookup(qrToken, cafeteriaId)`, `useRegisterOrder()`, `useCafeteriaStats(cafeteriaId)`, `useMembers(orgId)`, `useOrganizationInvitations(orgId)`, `useSendInvitation(orgId)`, `useCafeterias(orgId)`, `useCreateCafeteria(orgId)`, `useCompleteOrganizationSetup(orgId)`; helpers `canManage(role)`, `hasOrganizations(ctx)`, `roleLabel(role)`.
 
-- [ ] **Step 1: Real HTTP adapter (only `/user/context` wired)**
+- [ ] **Step 1: Real HTTP adapter (only `/users/context` wired)**
 
 Replace `src/lib/api/http.ts`:
 
@@ -1288,7 +1288,7 @@ async function fetchJson<T>(path: string, schema: z.ZodType<T>, init?: RequestIn
   return parsed.data
 }
 
-// Endpoints other than /user/context do not exist in the backend yet. Each placeholder names
+// Endpoints other than /users/context do not exist in the backend yet. Each placeholder names
 // the intended route so wiring them later is a one-line change to a fetchJson call.
 const notImplemented = (name: string, intendedRoute: string) => async () => {
   throw new ApiError('not_implemented', `${name} is not connected yet (planned: ${intendedRoute})`)
@@ -1296,10 +1296,10 @@ const notImplemented = (name: string, intendedRoute: string) => async () => {
 
 export function createHttpApi(): Api {
   return {
-    getUserContext: () => fetchJson('/user/context', userContextSchema),
-    listMyOrders: notImplemented('listMyOrders', 'GET /user/orders?cafeteriaId='),
-    getStampCards: notImplemented('getStampCards', 'GET /user/stamp-cards'),
-    respondToInvitation: notImplemented('respondToInvitation', 'POST /user/invitations/:id/respond'),
+    getUserContext: () => fetchJson('/users/context', userContextSchema),
+    listMyOrders: notImplemented('listMyOrders', 'GET /users/orders?cafeteriaId='),
+    getStampCards: notImplemented('getStampCards', 'GET /users/stamp-cards'),
+    respondToInvitation: notImplemented('respondToInvitation', 'POST /users/invitations/:id/respond'),
     lookupCustomer: notImplemented('lookupCustomer', 'GET /cafeterias/:cafeteriaId/customers/:qrToken'),
     registerOrder: notImplemented('registerOrder', 'POST /orders'),
     getCafeteriaStats: notImplemented('getCafeteriaStats', 'GET /cafeterias/:id/stats'),
@@ -3710,7 +3710,7 @@ Camera access needs HTTPS: run `npx next dev --experimental-https` and open the 
 `npm run dev` · `npm run build` · `npm run start` · `npm run lint` · `npm run typecheck`
 
 ## Connecting the backend
-Only `GET /user/context` is wired today. Each other method in `src/lib/api/http.ts` names its intended route and throws `not_implemented`; replace it with a `fetchJson(route, schema)` call once the endpoint exists. The zod schemas in `src/lib/api/types.ts` are the response contract.
+Only `GET /users/context` is wired today. Each other method in `src/lib/api/http.ts` names its intended route and throws `not_implemented`; replace it with a `fetchJson(route, schema)` call once the endpoint exists. The zod schemas in `src/lib/api/types.ts` are the response contract.
 ```
 
 - [ ] **Step 2: Responsive and dark-mode pass**

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 
 import type { Cafeteria, Organization } from '@/lib/api/types'
-import { canManage as canManageRole } from '@/lib/roles'
+import { canManage as canManageRole, needsSetup } from '@/lib/roles'
 import { useUserContext } from './use-user-context'
 
 const STORAGE_KEY = 'cv.active'
@@ -44,7 +44,8 @@ export function useActiveCafeteria() {
   const raw = useSyncExternalStore(subscribe, getSnapshot, () => null)
   const stored = useMemo(() => parseStored(raw), [raw])
 
-  const organizations = useMemo(() => context?.organizations ?? [], [context])
+  const organizations = useMemo(() => context?.organizations.filter((o) => o.status === 'created') ?? [], [context])
+  const unfinishedOrganization = useMemo(() => context?.organizations.find(needsSetup), [context])
 
   const resolved = useMemo<{ organization: Organization | undefined; cafeteria: Cafeteria | undefined }>(() => {
     if (organizations.length === 0) return { organization: undefined, cafeteria: undefined }
@@ -60,6 +61,7 @@ export function useActiveCafeteria() {
 
   return {
     organizations,
+    unfinishedOrganization,
     organization: resolved.organization,
     cafeteria: resolved.cafeteria,
     setActive,

@@ -7,14 +7,17 @@ import { LogoutButton } from '@/components/logout-button'
 import { ErrorCard } from '@/components/shared/error-card'
 import { Spinner } from '@/components/ui/spinner'
 import { useUserContext } from '@/hooks/use-user-context'
-import { hasOrganizations } from '@/lib/roles'
+import { hasOrganizations, needsSetup } from '@/lib/roles'
 
 export default function EntryPage() {
   const router = useRouter()
   const { data, error, isError, refetch } = useUserContext()
 
   useEffect(() => {
-    if (data) router.replace(hasOrganizations(data) ? '/org' : '/client')
+    if (!data) return
+    const unfinished = data.organizations.find(needsSetup)
+    if (unfinished) router.replace(`/onboarding/${unfinished.id}`)
+    else router.replace(hasOrganizations(data) ? '/org' : '/client')
   }, [data, router])
 
   if (isError) {

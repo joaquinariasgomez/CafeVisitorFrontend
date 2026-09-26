@@ -5,7 +5,7 @@
 CafeVisitorFrontend is the UI of a cafeteria loyalty/visit-tracking product. Today the repo is a
 Supabase auth starter: Google OAuth via `@supabase/ssr`, a middleware auth gate, a `backendFetch`
 wrapper that attaches the bearer token and signs out on 401, and one `/protected` page with a
-"Who am I?" button that calls `GET /user/context` and renders a QR code. Everything else is
+"Who am I?" button that calls `GET /users/context` and renders a QR code. Everything else is
 create-next-app boilerplate (root page, README, metadata).
 
 The product needs two distinct experiences behind one login:
@@ -151,7 +151,7 @@ src/
       types.ts        # zod schemas + inferred TS types (runtime-validated in http.ts; doubles as the
                       #   contract to hand to the backend)
       api.ts          # `Api` interface + ApiError
-      http.ts         # createHttpApi(): real adapter over backendFetch; only /user/context wired,
+      http.ts         # createHttpApi(): real adapter over backendFetch; only /users/context wired,
                       #   others throw ApiError('not_implemented') with the intended path noted
       mock/fixtures.ts# typed seed data per persona (`satisfies`)
       mock/store.ts   # in-memory mutable state + latency helper
@@ -205,7 +205,7 @@ completeOrganizationSetup(orgId, { displayName, cafeteria: { displayName, locati
 ```
 
 Both adapters implement this interface, so TypeScript enforces parity. `http.ts` wires
-`GET /user/context` (already exists) and leaves the other paths as clearly-marked placeholders
+`GET /users/context` (already exists) and leaves the other paths as clearly-marked placeholders
 that throw `NotImplemented` until the backend contract is confirmed.
 
 ### Mock adapter

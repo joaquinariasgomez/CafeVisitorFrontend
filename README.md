@@ -34,6 +34,6 @@ Camera access needs HTTPS: run `npx next dev --experimental-https` and open the 
 
 ## Connecting the backend
 
-Only `GET /user/context` is wired today. Each other method in `src/lib/api/http.ts` names its intended route and throws `not_implemented`; replace it with a `fetchJson(route, schema)` call once the endpoint exists. The zod schemas in `src/lib/api/types.ts` are the response contract.
+Only `GET /users/context` is wired today. Each other method in `src/lib/api/http.ts` names its intended route and throws `not_implemented`; replace it with a `fetchJson(route, schema)` call once the endpoint exists. The zod schemas in `src/lib/api/types.ts` are the response contract.
 
 Note: the mock adapter is loaded through a dynamic `import('./mock')` guarded by the env flag. Turbopack still emits it as a small separate chunk, but that chunk is only requested when `NEXT_PUBLIC_USE_MOCKS=true`.

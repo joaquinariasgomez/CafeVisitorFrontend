@@ -2,7 +2,7 @@ What was built
 
 - Design spec and implementation plan under docs/superpowers/.
 - Foundation: middleware.ts renamed to Next 16's proxy.ts, warm coffee palette with light and dark mode via next-themes, Providers (theme, React Query, toaster, API adapter), CafeVisitor branding, boilerplate removed, .env.example and README rewritten.
-- Typed API layer in src/lib/api: zod schemas, an Api interface, an HTTP adapter (only /user/context wired, the rest name their intended routes), and a mock adapter with four personas, in-memory mutations and a floating persona switcher in mock mode.
+- Typed API layer in src/lib/api: zod schemas, an Api interface, an HTTP adapter (only /users/context wired, the rest name their intended routes), and a mock adapter with four personas, in-memory mutations and a floating persona switcher in mock mode.
 - Auth: restyled login card, error page with a back link, and the proxy now keeps ?next= so a scanned QR deep link survives login.
 - App shell with top bar, avatar menu (client/org view switcher, theme toggle, sign out) and a per-view bottom tab bar.
 - Client view: QR card with full-screen dialog, pending invitations (accept/decline, owner invite routes to onboarding), stamp cards with reward badges, recent orders, and a filterable order history.

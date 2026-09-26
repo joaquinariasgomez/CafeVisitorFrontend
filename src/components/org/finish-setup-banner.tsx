@@ -5,8 +5,8 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import type { Organization } from '@/lib/api/types'
 
-export function FinishSetupBanner({ organization }: { organization: Organization }) {
-  if (organization.status !== 'pending' || organization.role !== 'owner') return null
+export function FinishSetupBanner({ organization }: { organization: Organization | undefined }) {
+  if (!organization) return null
   return (
     <Alert className="border-brand/50 bg-accent">
       <SparklesIcon className="text-brand" />

@@ -3,8 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useApi } from '@/lib/api'
-import type { InvitationDecision } from '@/lib/api/api'
 import { queryKeys } from '@/lib/query/keys'
+
+export type InvitationDecision = 'accepted' | 'rejected'
 
 export function useMyOrders(cafeteriaId?: string) {
   const api = useApi()
@@ -24,7 +25,7 @@ export function useRespondToInvitation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ invitationId, decision }: { invitationId: string; decision: InvitationDecision }) =>
-      api.respondToInvitation(invitationId, decision),
+      decision === 'accepted' ? api.acceptInvitation(invitationId) : api.rejectInvitation(invitationId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.userContext }),
   })
 }

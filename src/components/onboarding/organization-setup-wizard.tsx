@@ -26,7 +26,10 @@ export function OrganizationSetupWizard({ organization }: { organization: Organi
 
   const finish = () =>
     complete.mutate(
-      { displayName, cafeteria: { displayName: cafeteriaName, location } },
+      {
+        displayName: displayName.trim(),
+        cafeteria: { displayName: cafeteriaName.trim(), location: location.trim() },
+      },
       {
         onSuccess: (org) => {
           const first = org.cafeterias[0]

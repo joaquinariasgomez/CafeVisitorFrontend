@@ -17,6 +17,24 @@ export function OrgGuard({ children }: { children: (active: ActiveOrganization) 
 
   if (active.isPending) return <Skeleton className="h-40 w-full rounded-2xl" />
   if (active.isError) return <ErrorCard error={active.error} onRetry={() => active.refetch()} />
+  if (!active.organization && active.unfinishedOrganization) {
+    return (
+      <Empty className="py-16">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <BuildingIcon />
+          </EmptyMedia>
+          <EmptyTitle>Finish setting up {active.unfinishedOrganization.displayName}</EmptyTitle>
+          <EmptyDescription>Confirm the name and add your first cafeteria to start registering orders.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button render={<Link href={`/onboarding/${active.unfinishedOrganization.id}`} />} nativeButton={false}>
+            Set up
+          </Button>
+        </EmptyContent>
+      </Empty>
+    )
+  }
   if (!active.organization) {
     return (
       <Empty className="py-16">

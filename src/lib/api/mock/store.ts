@@ -14,7 +14,7 @@ export function uuid() {
 
 export function toOrder(state: MockState, row: MockOrderRow): Order {
   const cafeteria = state.cafeterias.find((c) => c.id === row.cafeteriaId)
-  const recorder = state.users.find((u) => u.id === row.recordedByUserId)
+  const recorder = state.users.find((u) => u.email === row.recordedByEmail)
   return {
     id: row.id,
     cafeteria: { id: row.cafeteriaId, displayName: cafeteria?.displayName ?? 'Unknown cafeteria' },
@@ -25,8 +25,8 @@ export function toOrder(state: MockState, row: MockOrderRow): Order {
   }
 }
 
-export function stampCardFor(state: MockState, userId: string, cafeteria: Cafeteria): StampCard {
-  const total = state.orders.filter((o) => o.userId === userId && o.cafeteriaId === cafeteria.id).length
+export function stampCardFor(state: MockState, userEmail: string, cafeteria: Cafeteria): StampCard {
+  const total = state.orders.filter((o) => o.userEmail === userEmail && o.cafeteriaId === cafeteria.id).length
   const threshold = STAMP_THRESHOLD_FALLBACK
   const remainder = total % threshold
   return {

@@ -21,8 +21,8 @@ export function MembersList({ organizationId }: { organizationId: string }) {
         {members.isError ? <ErrorCard error={members.error} onRetry={() => members.refetch()} /> : null}
         {members.data ? (
           <ul className="divide-y rounded-xl border bg-card">
-            {members.data.map((m) => (
-              <li key={m.user.id} className="flex items-center gap-3 p-3">
+            {members.data.map((m, index) => (
+              <li key={m.user.email ?? index} className="flex items-center gap-3 p-3">
                 <UserAvatar name={m.user.displayName} avatarUrl={m.user.avatarUrl} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{m.user.displayName ?? m.user.email}</p>
