@@ -8,6 +8,7 @@ import { CafeteriaSelector } from '@/components/org/cafeteria-selector'
 import { FinishSetupBanner } from '@/components/org/finish-setup-banner'
 import { OrgGuard, type ActiveOrganization } from '@/components/org/org-guard'
 import { StatTile } from '@/components/org/stat-tile'
+import { CompleteProfileBanner } from '@/components/shared/complete-profile-banner'
 import { ErrorCard } from '@/components/shared/error-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -19,6 +20,7 @@ function OrgHome({ organization, organizations, unfinishedOrganization, cafeteri
 
   return (
     <div className="flex flex-col gap-6">
+      <CompleteProfileBanner />
       <CafeteriaSelector
         organizations={organizations}
         organization={organization}

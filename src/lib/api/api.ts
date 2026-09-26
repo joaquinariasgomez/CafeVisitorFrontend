@@ -9,6 +9,7 @@ import type {
   OrganizationRole,
   RegisterOrderResult,
   StampCard,
+  User,
   UserContext,
 } from './types'
 
@@ -24,8 +25,14 @@ export interface CafeteriaInput {
   location: string
 }
 
+export interface ProfileInput {
+  displayName?: string
+  email?: string
+}
+
 export interface Api {
   getUserContext(): Promise<UserContext>
+  updateProfile(input: ProfileInput): Promise<User>
   listMyOrders(params?: { cafeteriaId?: string }): Promise<Order[]>
   getStampCards(): Promise<StampCard[]>
   acceptInvitation(invitationId: string): Promise<void>
@@ -41,6 +48,7 @@ export interface Api {
     organizationId: string,
     params: { email: string; role: OrganizationRole }
   ): Promise<OrganizationInvitation>
+  cancelInvitation(organizationId: string, invitationId: string): Promise<void>
   listCafeterias(organizationId: string): Promise<Cafeteria[]>
   createCafeteria(organizationId: string, input: CafeteriaInput): Promise<Cafeteria>
   completeOrganizationSetup(

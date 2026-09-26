@@ -35,7 +35,7 @@ export default function ManagePage() {
                   <InviteDialog organizationId={organization.id} />
                 </div>
               ) : null}
-              <MembersList organizationId={organization.id} />
+              <MembersList organizationId={organization.id} canManage={canManage} />
             </TabsContent>
             <TabsContent value="cafeterias" className="flex flex-col gap-4 pt-4">
               {canManage ? (

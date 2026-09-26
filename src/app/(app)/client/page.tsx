@@ -7,6 +7,7 @@ import { InvitationCard } from '@/components/client/invitation-card'
 import { OrderList } from '@/components/client/order-list'
 import { QrCard } from '@/components/client/qr-card'
 import { StampCard } from '@/components/client/stamp-card'
+import { CompleteProfileBanner } from '@/components/shared/complete-profile-banner'
 import { ErrorCard } from '@/components/shared/error-card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -37,6 +38,7 @@ export default function ClientHomePage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <CompleteProfileBanner />
       <QrCard user={user} />
 
       {pendingInvitations.length > 0 ? (

@@ -65,6 +65,15 @@ export function useSendInvitation(organizationId: string) {
   })
 }
 
+export function useCancelInvitation(organizationId: string) {
+  const api = useApi()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (invitationId: string) => api.cancelInvitation(organizationId, invitationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.organizationInvitations(organizationId) }),
+  })
+}
+
 export function useCafeterias(organizationId: string | undefined) {
   const api = useApi()
   return useQuery({

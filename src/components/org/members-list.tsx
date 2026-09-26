@@ -1,16 +1,23 @@
 'use client'
 
+import { XIcon } from 'lucide-react'
+
 import { ErrorCard } from '@/components/shared/error-card'
 import { UserAvatar } from '@/components/shared/user-avatar'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useMembers, useOrganizationInvitations } from '@/hooks/use-org-data'
+import { Spinner } from '@/components/ui/spinner'
+import { toast } from '@/components/ui/toast'
+import { useCancelInvitation, useMembers, useOrganizationInvitations } from '@/hooks/use-org-data'
+import { errorMessage } from '@/lib/api/errors'
 import { formatShortDay } from '@/lib/format'
 import { roleLabel } from '@/lib/roles'
 
-export function MembersList({ organizationId }: { organizationId: string }) {
+export function MembersList({ organizationId, canManage }: { organizationId: string; canManage: boolean }) {
   const members = useMembers(organizationId)
   const invitations = useOrganizationInvitations(organizationId)
+  const cancel = useCancelInvitation(organizationId)
   const pending = invitations.data?.filter((i) => i.status === 'pending') ?? []
 
   return (
@@ -50,6 +57,27 @@ export function MembersList({ organizationId }: { organizationId: string }) {
                   <p className="text-xs text-muted-foreground">Sent {formatShortDay(i.createdAt)}</p>
                 </div>
                 <Badge variant="outline">{roleLabel(i.role)}</Badge>
+                {canManage ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={cancel.isPending}
+                    aria-label={`Cancel invitation for ${i.email}`}
+                    onClick={() =>
+                      cancel.mutate(i.id, {
+                        onSuccess: () => toast.add({ type: 'success', title: `Invitation to ${i.email} cancelled` }),
+                        onError: (error) =>
+                          toast.add({
+                            type: 'error',
+                            title: 'Could not cancel invitation',
+                            description: errorMessage(error),
+                          }),
+                      })
+                    }
+                  >
+                    {cancel.isPending && cancel.variables === i.id ? <Spinner /> : <XIcon />} Cancel
+                  </Button>
+                ) : null}
               </li>
             ))}
           </ul>

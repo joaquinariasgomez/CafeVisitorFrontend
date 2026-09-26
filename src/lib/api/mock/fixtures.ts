@@ -18,7 +18,8 @@ export interface MockOrderRow {
 }
 
 export interface MockState {
-  me: MockUser
+  /** Can lack an email (incomplete profile); such a user is not in `users` until they set one. */
+  me: User
   users: MockUser[]
   organizations: Array<Omit<Organization, 'role' | 'cafeterias'>>
   memberships: Array<{ userEmail: string; organizationId: string; role: OrganizationRole }>
@@ -162,6 +163,11 @@ export function buildState(persona: MockPersona): MockState {
   switch (persona) {
     case 'client':
       return base
+    case 'client-no-email':
+      return {
+        ...base,
+        me: { displayName: null, email: null, avatarUrl: null, qrToken: '55555555-5555-4555-8555-555555555555' },
+      }
     case 'client-with-invites': {
       const pendingOrg = {
         id: 'a0000000-0000-4000-8000-000000000003',

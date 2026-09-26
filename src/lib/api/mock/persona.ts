@@ -1,8 +1,9 @@
-export const MOCK_PERSONAS = ['client', 'client-with-invites', 'org-member', 'org-admin'] as const
+export const MOCK_PERSONAS = ['client', 'client-no-email', 'client-with-invites', 'org-member', 'org-admin'] as const
 export type MockPersona = (typeof MOCK_PERSONAS)[number]
 
 export const PERSONA_LABELS: Record<MockPersona, string> = {
   client: 'Client (no organization)',
+  'client-no-email': 'Client without email (incomplete profile)',
   'client-with-invites': 'Client with pending invitations',
   'org-member': 'Organization member',
   'org-admin': 'Organization admin + owner',

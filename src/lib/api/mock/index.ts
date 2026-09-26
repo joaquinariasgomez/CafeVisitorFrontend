@@ -13,7 +13,7 @@ const DAY_MS = 86_400_000
 export function createMockApi(persona: MockPersona = readPersona()): Api {
   const state: MockState = buildState(persona)
 
-  function organizationsFor(userEmail: string): Organization[] {
+  function organizationsFor(userEmail: string | null): Organization[] {
     return state.memberships
       .filter((m) => m.userEmail === userEmail)
       .map((m) => {
@@ -74,6 +74,30 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       return context()
     },
 
+    async updateProfile({ displayName, email }) {
+      await delay(400)
+      const current = state.me
+      let nextEmail = current.email
+      if (email !== undefined) {
+        const normalized = email.trim().toLowerCase()
+        if (current.email && normalized !== current.email) {
+          throw new ApiError('unknown', 'Email cannot be changed', 400)
+        }
+        if (!current.email) {
+          if (state.users.some((u) => u.email === normalized)) {
+            throw new ApiError('unknown', 'That email is already in use', 400)
+          }
+          nextEmail = normalized
+        }
+      }
+      if (!nextEmail) throw new ApiError('unknown', 'email is required', 400)
+
+      const next = { ...current, email: nextEmail, displayName: displayName?.trim() || current.displayName }
+      state.users = [...state.users.filter((u) => u.email !== current.email), next]
+      state.me = next
+      return next
+    },
+
     async listMyOrders(params) {
       await delay()
       return state.orders
@@ -83,15 +107,19 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
 
     async getStampCards() {
       await delay()
-      const visited = new Set(state.orders.filter((o) => o.userEmail === state.me.email).map((o) => o.cafeteriaId))
-      return state.cafeterias.filter((c) => visited.has(c.id)).map((c) => stampCardFor(state, state.me.email, c))
+      const email = state.me.email
+      if (!email) return []
+      const visited = new Set(state.orders.filter((o) => o.userEmail === email).map((o) => o.cafeteriaId))
+      return state.cafeterias.filter((c) => visited.has(c.id)).map((c) => stampCardFor(state, email, c))
     },
 
     async acceptInvitation(invitationId) {
       await delay()
+      const email = state.me.email
+      if (!email) throw new ApiError('unknown', 'Add your email to your profile before joining an organization', 400)
       const invitation = requirePendingInvitation(invitationId)
       invitation.status = 'accepted'
-      state.memberships.push({ userEmail: state.me.email, organizationId: invitation.organization.id, role: invitation.role })
+      state.memberships.push({ userEmail: email, organizationId: invitation.organization.id, role: invitation.role })
     },
 
     async rejectInvitation(invitationId) {
@@ -194,6 +222,16 @@ export function createMockApi(persona: MockPersona = readPersona()): Api {
       state.orgInvitations.unshift(invitation)
       const { id, email: normalizedEmail, role: invitedRole, status, createdAt } = invitation
       return { id, email: normalizedEmail, role: invitedRole, status, createdAt }
+    },
+
+    async cancelInvitation(organizationId, invitationId) {
+      await delay()
+      requireMembership(organizationId, ['owner', 'admin'])
+      const index = state.orgInvitations.findIndex(
+        (i) => i.id === invitationId && i.organizationId === organizationId && i.status === 'pending'
+      )
+      if (index === -1) throw new ApiError('not_found', 'Invitation not found', 404)
+      state.orgInvitations.splice(index, 1)
     },
 
     async listCafeterias(organizationId) {
